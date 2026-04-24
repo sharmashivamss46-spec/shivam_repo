@@ -1,0 +1,35 @@
+name: Tomcat CI Test
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  tomcat-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download Tomcat
+        run: |
+          wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.89/bin/apache-tomcat-9.0.89.tar.gz
+          tar -xzf apache-tomcat-9.0.89.tar.gz
+          mv apache-tomcat-9.0.89 tomcat
+
+      - name: Start Tomcat
+        run: |
+          chmod +x tomcat/bin/*.sh
+          nohup tomcat/bin/startup.sh &
+          sleep 10
+
+      - name: Check Tomcat URL
+        run: |
+          curl -I http://localhost:8080
