@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "sharmashivamss46/java-webapp"
         TAG = "${BUILD_NUMBER}"
+    }
 
     stages {
 
@@ -23,8 +24,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t ${IMAGE_NAME}:${TAG} .
-                docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_NAME}:latest
+                    docker build -t ${IMAGE_NAME}:${TAG} .
+                    docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_NAME}:latest
                 '''
             }
         }
@@ -33,17 +34,14 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub',
-                    usernameVariable: 'sharmashivamss46',
-                    passwordVariable: 'Iphone@123456789'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
-
                     sh '''
-                    echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-
-                    docker push ${IMAGE_NAME}:${TAG}
-                    docker push ${IMAGE_NAME}:latest
-
-                    docker logout
+                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                        docker push ${IMAGE_NAME}:${TAG}
+                        docker push ${IMAGE_NAME}:latest
+                        docker logout
                     '''
                 }
             }
@@ -52,26 +50,21 @@ pipeline {
         stage('Deploy Docker Containers') {
             steps {
                 sh '''
-                docker rm -f app1 app2 || true
-
-                docker run -d --name app1 -p 8081:8080 ${IMAGE_NAME}:${TAG}
-
-                docker run -d --name app2 -p 8082:8080 ${IMAGE_NAME}:${TAG}
+                    docker rm -f app1 app2 || true
+                    docker run -d --name app1 -p 8081:8080 ${IMAGE_NAME}:${TAG}
+                    docker run -d --name app2 -p 8082:8080 ${IMAGE_NAME}:${TAG}
                 '''
             }
         }
-
     }
 
     post {
         success {
             echo 'Pipeline completed successfully.'
         }
-
         failure {
             echo 'Pipeline failed.'
         }
-
         always {
             cleanWs()
         }
