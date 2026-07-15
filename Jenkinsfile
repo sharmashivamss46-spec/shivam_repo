@@ -4,12 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = "sharmashivamss46/java-webapp"
         TAG = "${BUILD_NUMBER}"
-    }
-
-    tools {
-        maven 'Maven'
-        jdk 'JDK21'
-    }
 
     stages {
 
