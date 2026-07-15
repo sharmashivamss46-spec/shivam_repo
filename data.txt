@@ -1,5 +1,1 @@
-new file
-new file 2
-new file 3
-new file 4
-new file 5
+new file1
