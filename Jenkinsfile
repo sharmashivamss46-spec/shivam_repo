@@ -1,42 +1,30 @@
 pipeline {
-
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
-                echo 'Pulling code from GitHub'
+                git branch: 'main',
+                    url: 'https://github.com/sharmashivamss46-spec/shivam_repo.git'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building application'
+                echo 'Building application...'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running test cases'
+                echo 'Running tests...'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deployment completed'
+                echo 'Deploying application...'
             }
-        }
-    }
-
-    post {
-
-        success {
-            echo 'Pipeline executed successfully'
-        }
-
-        failure {
-            echo 'Pipeline failed'
         }
     }
 }
