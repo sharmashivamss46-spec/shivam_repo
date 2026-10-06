@@ -28,6 +28,18 @@ pipeline {
             }
         }
 
+        stage('Test Target Connection') {
+            steps {
+                sh '''
+                    echo "Testing SSH connection to JBoss server..."
+                    /usr/bin/ansible \
+                    -i /etc/ansible/playbooks/inventory \
+                    jboss02 \
+                    -m ping
+                '''
+            }
+        }
+
         stage('Deploy WAR') {
             steps {
                 ansiblePlaybook(
