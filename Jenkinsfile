@@ -1,72 +1,47 @@
+```groovy
 pipeline {
     agent any
-
-    environment {
-        IMAGE_NAME = "sharmashivamss46/java-webapp"
-        TAG = "${BUILD_NUMBER}"
-    }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/sharmashivamss46-spec/shivam_repo.git'
+                checkout scm
             }
         }
 
-        stage('Build Maven Project') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Build Docker Image') {
+        stage('Check Ansible') {
             steps {
                 sh '''
-                    docker build -t ${IMAGE_NAME}:${TAG} .
-                    docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_NAME}:latest
+                    echo "Checking Ansible..."
+                    /usr/bin/ansible --version
+                    /usr/bin/ansible-playbook --version
                 '''
             }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-                        docker push ${IMAGE_NAME}:${TAG}
-                        docker push ${IMAGE_NAME}:latest
-                        docker logout
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy Docker Containers') {
+        stage('Check WAR') {
             steps {
                 sh '''
-                    docker rm -f app1 app2 || true
-                    docker run -d --name app1 -p 8081:8080 ${IMAGE_NAME}:${TAG}
-                    docker run -d --name app2 -p 8082:8080 ${IMAGE_NAME}:${TAG}
+                    echo "Checking WAR file..."
+                    ls -lh /home/Project/DevOPS/LoginWebApp.war
                 '''
             }
         }
-    }
 
-    post {
-        success {
-            echo 'Pipeline completed successfully.'
-        }
-        failure {
-            echo 'Pipeline failed.'
-        }
-        always {
-            cleanWs()
+        stage('Deploy WAR') {
+            steps {
+                ansiblePlaybook(
+                    installation: 'ansible',
+                    playbook: '/etc/ansible/playbooks/war_deploy.yml',
+                    inventory: '/etc/ansible/playbooks/inventory',
+                    extraVars: [
+                        war_file: '/home/Project/DevOPS/LoginWebApp.war'
+                    ],
+                    colorized: true
+                )
+            }
         }
     }
 }
+```
